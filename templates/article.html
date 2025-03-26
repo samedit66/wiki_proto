@@ -18,8 +18,8 @@
 
         <div class="article_image">
             <img
-                src="{{ url_for('static', filename=article_image) }}"
-                alt="Crew Dragon 10"
+                src="{{ url_for('uploaded_photo', filename=article_image) }}"
+                alt="{{ article_title }}"
                 style="height: 150px; width: auto; margin-bottom: 10px;">
 
             <div><b>{{ article_title }}</b></div>

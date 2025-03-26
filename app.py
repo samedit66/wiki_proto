@@ -1,12 +1,19 @@
-from flask import Flask, render_template
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    send_from_directory)
+import os
 
 
 app = Flask(__name__)
 
-# /article/1
-# /article/spacex
-# /article/cosmos
-# /article/sonic
+# Создаем по умолчанию папку 'uploads/' для загрузки картинок
+app.config['UPLOAD_FOLDER'] = 'uploads/'
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 database = {
     "spacex": {
         "article_title": "SpaceX Crew-10",
@@ -45,15 +52,39 @@ def get_article(name):
         )
 
 
-@app.route("/create_article")
+@app.route("/create_article", methods=["GET", "POST"])
 def create_article():
-    return render_template('create_article.html')
+    if request.method == "GET":
+        return render_template('create_article.html')
+    
+    # Далее обработка POST-запроса
+    title = request.form.get("title")
+    content = request.form.get("content")
+    photo = request.files.get("photo")
+    
+    if photo is not None: # Не надо писать: photo != None
+        photo_path = photo.filename
+        photo.save(photo_path)
+    else:
+        photo_path = ""
 
+    database[title] = {
+        "article_title": title,
+        "article_text": content,
+        "article_image": photo_path
+    }
+
+    return redirect(url_for('index'))
 
 @app.route("/")
 @app.route("/index")
 def index():
     return render_template("index.html")
+
+
+@app.route('/uploads/<filename>')
+def uploaded_photo(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
 app.run(debug=True, port=8080)
